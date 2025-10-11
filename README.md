@@ -1,3 +1,45 @@
+# FSM explanation
+
+## State 1: Attack state (starting state)
+NPC will aim at and shoot the player.
+
+### Transitions:
+- **1 → 2**: If the NPC flies too close to the player.  
+- **1 → 2**: If the attack phase has lasted too long (random time from 6–16 seconds).  
+- **1 → 3**: If there is an item close by and the attack phase has lasted too long (random 4–14 seconds).  
+- **1 → 4**: If the NPC is too far away from the center.  
+- **1 → 4**: If the NPC is too close to hitting the ground (taking into account distance as well as pitch).
+
+---
+
+## State 2: Strafe state
+NPC will evasively strafe away from the player.
+
+### Transitions:
+- **2 → 3**: If there is a close item and the strafe phase has lasted a random time from 0–5 seconds.  
+- **2 → 1**: If the strafe phase has lasted too long (random 2–10 seconds).
+
+---
+
+## State 3: Item collection state
+NPC will move towards an item.
+
+### Transitions:
+- **3 → 1**: If the item no longer exists (collected or despawned).  
+- **3 → 2**: If at least 6 seconds have passed since the phase started and the player is aiming close to the NPC.
+
+---
+
+## State 4: Avoid border state
+NPC will move back towards the center of the map to avoid the border.  
+
+**Note:** Only state 1 can transition to this state because it's the only state where the NPC can pathfind close to the border.
+
+### Transitions:
+- **4 → 1**: Random time from 2–5 seconds.  
+
+---
+
 # CISC 486 Game Proposal
 
 ## Game Title
