@@ -1,5 +1,5 @@
 # FSM explanation
-
+[Showcase video link](https://www.youtube.com/watch?v=poX3BPjWwkE)
 ## State 1: Attack state (starting state)
 NPC will aim at and shoot the player.
 
