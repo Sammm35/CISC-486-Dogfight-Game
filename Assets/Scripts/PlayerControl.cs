@@ -1,24 +1,38 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
 {
     public GameObject cam;
     public GameObject motor;
+    Rigidbody rb;
+    TrailRenderer trail;
     int motorSpeed = 16207; // degrees of rotation per second
     float speed = 25;
     float turnXSpeed = 100; // degrees or rotarion per seconds
     float turnZSpeed = 240;
+    int crashed = 0;
+    Vector3 startPos;
+    Quaternion startRot;
+    float respawnDelay = -2;
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
+        trail = GetComponent<TrailRenderer>();
+        startRot = rb.transform.localRotation;
+        startPos = rb.transform.localPosition;
     }
 
     // Update is called once per frame
     void Update()
     {
         // motor spinning animation
-        motor.transform.Rotate(0f, 0f, motorSpeed * Time.deltaTime);
+        if (crashed == 0)
+        {
+            motor.transform.Rotate(0f, 0f, motorSpeed * Time.deltaTime);
+        }
 
         // Toggle camera view:
             // pressing 'S' changes to second person
@@ -38,50 +52,90 @@ public class PlayerControl : MonoBehaviour
         // Plane constantly moves fowards (can tell direction based on x,y rotation)
         // While "SHIFT" is being held down: Micro aim adjustments moving x,y rotation at 1/6 turn speed
         // Without "SHIFT": Player can turn much faster but can only change x,z rotation
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (crashed == 0)
         {
-            if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow))
+            if (Input.GetKey(KeyCode.LeftShift))
             {
-                transform.Rotate(-turnXSpeed/6 * Time.deltaTime, 0, 0);
+                if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow))
+                {
+                    transform.Rotate(-turnXSpeed / 6 * Time.deltaTime, 0, 0);
+                }
+                else if (!Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.DownArrow))
+                {
+                    transform.Rotate(turnXSpeed / 6 * Time.deltaTime, 0, 0);
+                }
+
+                if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+                {
+                    transform.Rotate(0, turnZSpeed / 6 * Time.deltaTime, 0);
+                }
+                else if (!Input.GetKey(KeyCode.RightArrow) && Input.GetKey(KeyCode.LeftArrow))
+                {
+                    transform.Rotate(0, -turnZSpeed / 6 * Time.deltaTime, 0);
+                }
             }
-            else if (!Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.DownArrow))
+            else
             {
-                transform.Rotate(turnXSpeed/6 * Time.deltaTime, 0, 0);
+                if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow))
+                {
+                    transform.Rotate(-turnXSpeed * Time.deltaTime, 0, 0);
+                }
+                else if (!Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.DownArrow))
+                {
+                    transform.Rotate(turnXSpeed * Time.deltaTime, 0, 0);
+                }
+
+                if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+                {
+                    transform.Rotate(0, 0, -turnZSpeed * Time.deltaTime);
+                }
+                else if (!Input.GetKey(KeyCode.RightArrow) && Input.GetKey(KeyCode.LeftArrow))
+                {
+                    transform.Rotate(0, 0, turnZSpeed * Time.deltaTime);
+                }
             }
 
-            if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+            if (!Input.GetKey(KeyCode.C))   // always move foward unless C is press down (for testing purposes)
             {
-                transform.Rotate(0, turnZSpeed / 6 * Time.deltaTime, 0);
-            }
-            else if (!Input.GetKey(KeyCode.RightArrow) && Input.GetKey(KeyCode.LeftArrow))
-            {
-                transform.Rotate(0, -turnZSpeed / 6 * Time.deltaTime, 0);
-            }
-        }
-        else
-        {
-            if (Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow))
-            {
-                transform.Rotate(-turnXSpeed * Time.deltaTime, 0, 0);
-            }
-            else if (!Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.DownArrow))
-            {
-                transform.Rotate(turnXSpeed * Time.deltaTime, 0, 0);
-            }
-
-            if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-            {
-                transform.Rotate(0, 0, -turnZSpeed * Time.deltaTime);
-            }
-            else if (!Input.GetKey(KeyCode.RightArrow) && Input.GetKey(KeyCode.LeftArrow))
-            {
-                transform.Rotate(0, 0, turnZSpeed * Time.deltaTime);
+                transform.Translate(Vector3.forward * speed * Time.deltaTime);
             }
         }
 
-        if (!Input.GetKey(KeyCode.C))   // always move foward unless C is press down (for testing purposes)
+        // Bit of logic to ensure respawning works properly
+        rb.isKinematic = false;
+        respawnDelay -= Time.deltaTime;
+        if (respawnDelay < 0 && respawnDelay > -1)
         {
-            transform.Translate(Vector3.forward*speed*Time.deltaTime);
+            respawnDelay = -2;
+            Respawn();
         }
+    }
+    private void OnCollisionEnter(Collision collision)
+        // Crash on collision with terrain or enemy:
+        // Movement is turned off and gravity will be enabled
+        // Respawn at starting pos after 3 seconds
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Terrain") || collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        {
+            crashed++;
+            if (crashed == 1)
+            {
+                rb.isKinematic = false;
+                rb.useGravity = true;
+                trail.emitting = false; // disables the trail after a collision
+                respawnDelay = 3;
+            }
+            rb.AddExplosionForce(1000f, transform.position, 5f);    // minor ragdoll effect
+        }
+    }
+
+    void Respawn()
+    {
+        rb.isKinematic = true;  // turns on isKinematic for 1 frame to fix a bug with movement
+        rb.useGravity = false;
+        trail.emitting = true;
+        transform.position = startPos;
+        transform.rotation = startRot;
+        crashed = 0;
     }
 }
