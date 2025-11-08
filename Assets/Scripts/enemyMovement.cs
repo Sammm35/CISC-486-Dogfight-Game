@@ -2,11 +2,13 @@ using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static UnityEngine.Rendering.HighDefinition.ScalableSettingLevelParameter;
 
 public class enemyMovement : MonoBehaviour
 {
     public GameObject motor;
     public Transform playerPos;
+    public livesController lives;
     Rigidbody rb;
     TrailRenderer trail;
     int motorSpeed = 16207; // degrees of rotation per second
@@ -285,6 +287,7 @@ public class enemyMovement : MonoBehaviour
                 rb.isKinematic = false;
                 rb.useGravity = true;
                 trail.emitting = false; // disables the trail after a collision
+                lives.crash(1);
                 respawnDelay = 3;
             }
             rb.AddExplosionForce(1000f, transform.position, 5f);    // minor ragdoll effect

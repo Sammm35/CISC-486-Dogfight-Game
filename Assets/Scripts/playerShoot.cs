@@ -9,10 +9,11 @@ public class playerShoot : MonoBehaviour
 
     public Transform bulletSpawnTransform;
     public GameObject bulletPrefab;
+    public PlayerControl pc;
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Z))    // Press Z to shoot
+        if (Input.GetKeyDown(KeyCode.Z) && pc.crashed == 0)    // Press Z to shoot if not crashed
         {
             Shoot();
         }

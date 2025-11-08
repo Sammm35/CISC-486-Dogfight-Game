@@ -7,13 +7,14 @@ public class PlayerControl : MonoBehaviour
 {
     public GameObject cam;
     public GameObject motor;
+    public livesController lives;
     Rigidbody rb;
     TrailRenderer trail;
     int motorSpeed = 16207; // degrees of rotation per second
     float speed = 25;
     float turnXSpeed = 100; // degrees or rotarion per seconds
     float turnZSpeed = 240;
-    int crashed = 0;
+    public int crashed = 0; // public so the shoot script can disable firing while crashed
     Vector3 startPos;
     Quaternion startRot;
     float respawnDelay = -2;
@@ -123,6 +124,7 @@ public class PlayerControl : MonoBehaviour
                 rb.isKinematic = false;
                 rb.useGravity = true;
                 trail.emitting = false; // disables the trail after a collision
+                lives.crash(0);
                 respawnDelay = 3;
             }
             rb.AddExplosionForce(1000f, transform.position, 5f);    // minor ragdoll effect
