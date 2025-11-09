@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.Rendering;
 using static UnityEngine.Rendering.HighDefinition.ScalableSettingLevelParameter;
 
@@ -9,6 +10,9 @@ public class enemyMovement : MonoBehaviour
     public GameObject motor;
     public Transform playerPos;
     public livesController lives;
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip shootSound;
+    [SerializeField] private AudioClip crashSound;
     Rigidbody rb;
     TrailRenderer trail;
     int motorSpeed = 16207; // degrees of rotation per second
@@ -50,6 +54,7 @@ public class enemyMovement : MonoBehaviour
         random = Random.value;
         rb = GetComponent<Rigidbody>();
         trail = GetComponent<TrailRenderer>();
+        audioSource = GetComponent<AudioSource>();
         startRot = rb.transform.localRotation;
         startPos = rb.transform.localPosition;
     }
@@ -185,6 +190,7 @@ public class enemyMovement : MonoBehaviour
     {
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawnTransform.position, bulletSpawnTransform.rotation);
         bullet.GetComponent<Rigidbody>().AddForce(bulletSpawnTransform.forward * bulletSpeed, ForceMode.Impulse);
+        AudioSource.PlayClipAtPoint(shootSound, transform.position, 0.4f);
     }
 
     void Attack()
@@ -289,8 +295,10 @@ public class enemyMovement : MonoBehaviour
                 trail.emitting = false; // disables the trail after a collision
                 lives.crash(1);
                 respawnDelay = 3;
+                audioSource.Pause(); // pauses the motor sound effect
             }
             rb.AddExplosionForce(1000f, transform.position, 5f);    // minor ragdoll effect
+            AudioSource.PlayClipAtPoint(crashSound, transform.position, 0.5f);
         }
     }
 
@@ -299,6 +307,7 @@ public class enemyMovement : MonoBehaviour
         rb.isKinematic = true;  // turns on isKinematic for 1 frame to fix a bug with movement
         rb.useGravity = false;
         trail.emitting = true;
+        audioSource.UnPause(); // unpauses motor sound
         transform.position = startPos;
         transform.rotation = startRot;
         crashed = 0;

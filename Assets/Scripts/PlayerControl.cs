@@ -8,6 +8,8 @@ public class PlayerControl : MonoBehaviour
     public GameObject cam;
     public GameObject motor;
     public livesController lives;
+    [SerializeField] private AudioClip crashSound;
+    public AudioSource audioSource; // audio source component is on child motor because Plane 1 already has an AudioSource
     Rigidbody rb;
     TrailRenderer trail;
     int motorSpeed = 16207; // degrees of rotation per second
@@ -126,8 +128,10 @@ public class PlayerControl : MonoBehaviour
                 trail.emitting = false; // disables the trail after a collision
                 lives.crash(0);
                 respawnDelay = 3;
+                audioSource.Pause(); // pauses the motor sound effect
             }
             rb.AddExplosionForce(1000f, transform.position, 5f);    // minor ragdoll effect
+            AudioSource.PlayClipAtPoint(crashSound, transform.position, 0.5f);
         }
     }
 
@@ -139,5 +143,6 @@ public class PlayerControl : MonoBehaviour
         transform.position = startPos;
         transform.rotation = startRot;
         crashed = 0;
+        audioSource.UnPause(); // unpauses the motor sound effect
     }
 }

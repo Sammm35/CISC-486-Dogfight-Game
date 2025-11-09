@@ -10,7 +10,12 @@ public class playerShoot : MonoBehaviour
     public Transform bulletSpawnTransform;
     public GameObject bulletPrefab;
     public PlayerControl pc;
+    private AudioSource audioSource;
 
+    private void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Z) && pc.crashed == 0)    // Press Z to shoot if not crashed
@@ -23,5 +28,6 @@ public class playerShoot : MonoBehaviour
     {
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawnTransform.position, bulletSpawnTransform.rotation);
         bullet.GetComponent<Rigidbody>().AddForce(bulletSpawnTransform.forward*bulletSpeed, ForceMode.Impulse);
+        audioSource.Play();
     }
 }
