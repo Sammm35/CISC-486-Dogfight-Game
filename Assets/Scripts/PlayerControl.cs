@@ -98,10 +98,7 @@ public class PlayerControl : MonoBehaviour
                 }
             }
 
-            if (!Input.GetKey(KeyCode.C))   // always move foward unless C is press down (for testing purposes)
-            {
-                transform.Translate(Vector3.forward * speed * Time.deltaTime);
-            }
+            transform.Translate(Vector3.forward * speed * Time.deltaTime); // always moves fowards
         }
 
         // Bit of logic to ensure respawning works properly

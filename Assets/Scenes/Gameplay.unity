@@ -340,7 +340,7 @@ MonoBehaviour:
   hit3: {fileID: 8300000, guid: 6827d5332db024e48b871b5f8988bfe9, type: 3}
   hitMarker: {fileID: 8300000, guid: 217f1ed2b83d9db47bbbc1a6cb226e64, type: 3}
   pop: {fileID: 8300000, guid: f227e74f089ff784d8124c03136bf8de, type: 3}
-  startingLives: 999
+  startingLives: 30
   pPos: {fileID: 528949329}
   ePos: {fileID: 2092836650}
 --- !u!82 &193003001
